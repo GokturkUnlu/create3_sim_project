@@ -302,4 +302,13 @@
       </plugin>
     </gazebo>
   </xacro:if>
+<!--add for rplidar s1 mounting phase -->
+<xacro:include filename="$(find irobot_create_description)/urdf/sensors/rplidar_s1.xacro" />
+
+<xacro:rplidar_sensor 
+    parent_link="base_link" 
+    origin_xyz="0.05 0 0.12"
+    origin_rpy="0 0 0"
+/>
+<!-- Up to here -->
 </robot>
