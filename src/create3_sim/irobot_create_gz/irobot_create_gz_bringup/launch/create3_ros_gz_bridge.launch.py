@@ -125,6 +125,19 @@ def generate_launch_description():
                                       'bumper_contact')
                                  ])
 
+    # Lidar scan bridge (for SLAM/Navigation)
+    lidar_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        name='lidar_bridge',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time
+        }],
+        arguments=[
+            '/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan'
+        ])
+
     # Cliff bridge
     cliff_bridges = GroupAction([
         Node(package='ros_gz_bridge', executable='parameter_bridge',
@@ -190,12 +203,36 @@ def generate_launch_description():
         ]
     )
 
+    # Static transform for Lidar (base_link -> create3/base_link/lidar)
+    # Gazebo uses model_name/link_name/sensor_name as frame naming
+    lidar_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='lidar_static_tf',
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}],
+        arguments=['0.05', '0', '0.12', '0', '0', '0', 'base_link', 'create3/base_link/lidar']
+    )
+
+    # Static transform for Nav2 (base_link -> base_footprint)
+    base_footprint_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='base_footprint_tf',
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}],
+        arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'base_footprint']
+    )
+
     # Create launch description and add actions
     ld = LaunchDescription(ARGUMENTS)
     ld.add_action(cmd_vel_bridge)
     ld.add_action(pose_bridge)
     ld.add_action(odom_base_tf_bridge)
     ld.add_action(bumper_contact_bridge)
+    ld.add_action(lidar_bridge)
+    ld.add_action(lidar_tf)
+    ld.add_action(base_footprint_tf)
     ld.add_action(cliff_bridges)
     ld.add_action(ir_bridges)
     ld.add_action(buttons_msg_bridge)

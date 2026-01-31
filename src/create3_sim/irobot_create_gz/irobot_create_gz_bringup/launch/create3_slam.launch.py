@@ -31,20 +31,12 @@ def generate_launch_description():
         }.items()
     )
 
-    # Static transform for Lidar (base_link -> create3/base_link/lidar)
-    static_transform = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_transform_publisher',
-        arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'create3/base_link/lidar'],
-        parameters=[{'use_sim_time': use_sim_time}],
-        output='screen'
-    )
+    # Note: Lidar TF (base_link -> create3/base_link/lidar) and base_footprint TF
+    # are now published by create3_ros_gz_bridge.launch.py for proper timing
 
     ld = LaunchDescription()
     ld.add_action(declare_use_sim_time_argument)
     ld.add_action(declare_slam_params_file_cmd)
     ld.add_action(slam_toolbox_launch)
-    ld.add_action(static_transform)
 
     return ld
