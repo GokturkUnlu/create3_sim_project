@@ -21,6 +21,8 @@ ARGUMENTS = [
                           description='use_sim_time'),
     DeclareLaunchArgument('world', default_value='depot',
                           description='Ignition World'),
+    DeclareLaunchArgument('headless', default_value='false',
+                          description='Run Gazebo in headless mode'),
 ]
 
 
@@ -57,19 +59,36 @@ def generate_launch_description():
         [pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py'])
 
     # Ignition gazebo
-    gz_sim = IncludeLaunchDescription(
+    # Ignition gazebo
+    gz_args = [
+        LaunchConfiguration('world'),
+        '.sdf',
+        ' -v 4',
+        ' -r'  # Run simulation as fast as possible
+    ]
+    
+    # Conditional GUI config
+    from launch.conditions import IfCondition, UnlessCondition
+    
+    gz_sim_gui = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([gz_sim_launch]),
-        launch_arguments=[(
-            'gz_args', [
-                LaunchConfiguration('world'),
-                '.sdf',
-                ' -v 4',
-                ' --gui-config ',
-                PathJoinSubstitution(
-                    [pkg_irobot_create_gz_bringup, 'gui', 'create3', 'gui.config']
-                )
-            ]
-        )]
+        launch_arguments=[('gz_args', [
+            *gz_args,
+            ' --gui-config ',
+            PathJoinSubstitution(
+                [pkg_irobot_create_gz_bringup, 'gui', 'create3', 'gui.config']
+            )
+        ])],
+        condition=UnlessCondition(LaunchConfiguration('headless'))
+    )
+    
+    gz_sim_headless = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([gz_sim_launch]),
+        launch_arguments=[('gz_args', [
+            *gz_args,
+            ' -s'  # Run in server-only mode (headless)
+        ])],
+        condition=IfCondition(LaunchConfiguration('headless'))
     )
 
     # clock bridge
@@ -84,6 +103,9 @@ def generate_launch_description():
     ld = LaunchDescription(ARGUMENTS)
     ld.add_action(gz_resource_path)
     ld.add_action(gz_gui_plugin_path)
-    ld.add_action(gz_sim)
+    ld.add_action(gz_resource_path)
+    ld.add_action(gz_gui_plugin_path)
+    ld.add_action(gz_sim_gui)
+    ld.add_action(gz_sim_headless)
     ld.add_action(clock_bridge)
     return ld

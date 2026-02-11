@@ -49,7 +49,7 @@
           </range>
         </ray>
         <always_on>true</always_on>
-        <visualize>${visualize}</visualize>
+        <visualize>true</visualize>
       </sensor>
     </gazebo>
   </xacro:macro>

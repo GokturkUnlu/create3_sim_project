@@ -16,7 +16,7 @@ if(NOT ros_gz_interfaces_FOUND)
 endif()
 
 install(
-  DIRECTORY gui launch worlds config
+  DIRECTORY gui launch worlds config rviz
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -38,10 +38,16 @@ def generate_launch_description():
     create3_nodes_launch = PathJoinSubstitution(
         [pkg_irobot_create_gz_bringup, 'launch', 'create3_gz_nodes.launch.py'])
 
+    # Create launch description and add actions
+    ld = LaunchDescription(ARGUMENTS)
+    ld.add_action(DeclareLaunchArgument('headless', default_value='false',
+                                      description='Run Gazebo in headless mode (no GUI).'))
+    
     ignition = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([ignition_launch]),
         launch_arguments=[
-            ('world', LaunchConfiguration('world'))
+            ('world', LaunchConfiguration('world')),
+            ('headless', LaunchConfiguration('headless'))
         ]
     )
 
