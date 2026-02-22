@@ -312,4 +312,14 @@
     ray_count="360"
 />
 <!-- Up to here -->
+
+<!--add front camera -->
+<xacro:include filename="$(find irobot_create_description)/urdf/sensors/camera.xacro" />
+
+<xacro:camera_sensor
+    parent_link="base_link"
+    origin_xyz="0.13 0 0.10"
+    origin_rpy="0 0 0"
+/>
+<!-- Up to here (camera) -->
 </robot>

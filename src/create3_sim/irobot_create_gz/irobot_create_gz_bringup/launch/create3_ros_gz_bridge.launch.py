@@ -214,6 +214,29 @@ def generate_launch_description():
         arguments=['0.05', '0', '0.12', '0', '0', '0', 'base_link', 'create3/base_link/lidar']
     )
 
+    # Camera image bridge
+    camera_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        name='camera_bridge',
+        output='screen',
+        parameters=[{
+            'use_sim_time': use_sim_time
+        }],
+        arguments=[
+            '/camera/image@sensor_msgs/msg/Image[gz.msgs.Image'
+        ])
+
+    # Static transform for camera (base_link -> create3/base_link/front_camera)
+    camera_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='camera_static_tf',
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}],
+        arguments=['0.13', '0', '0.10', '0', '0', '0', 'base_link', 'create3/base_link/front_camera']
+    )
+
     # Static transform for Nav2 (base_link -> base_footprint)
     base_footprint_tf = Node(
         package='tf2_ros',
@@ -232,6 +255,8 @@ def generate_launch_description():
     ld.add_action(bumper_contact_bridge)
     ld.add_action(lidar_bridge)
     ld.add_action(lidar_tf)
+    ld.add_action(camera_bridge)
+    ld.add_action(camera_tf)
     ld.add_action(base_footprint_tf)
     ld.add_action(cliff_bridges)
     ld.add_action(ir_bridges)
