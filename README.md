@@ -25,73 +25,58 @@ This repository contains the simulation setup for the iRobot Create 3, including
     source install/setup.bash
     ```
 
-## Usage Guide
+iRobot Create 3 Simulation & Autonomous Navigation
+This repository contains the simulation, navigation, and autonomous exploration packages for the iRobot Create 3 in Gazebo. It supports two primary modes: Auto-Motion (sending specific coordinate goals) and Autonomous Exploration (frontier-based mapping).
 
-To run the full simulation stack, you will need **5 Terminal Tabs**.
+Prerequisites
+Before running any command, ensure you have sourced your ROS 2 environment (Jazzy) and the workspace overlay.
 
-### Terminal 1: Simulation
-Launches Gazebo and spawns the robot in the maze world.
-```bash
+Bash
+source /opt/ros/jazzy/setup.bash
+source ~/create3_sim_ws/install/setup.bash
+##Task 1: Auto-Motion (Point-to-Point Navigation)
+Use this mode to launch the simulation and send the robot to a specific (x, y) coordinate using the Nav2 stack.
+
+Step 1: Launch Simulation & Navigation
+Open a new terminal and run the main launch file. This starts Gazebo, Rviz, and the Navigation2 stack.
+
+Bash
+cd ~/create3_sim_ws
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
-ros2 launch irobot_create_gz_bringup create3_gz.launch.py world:=maze
-```
-**Expected Output**: Gazebo GUI opens. The robot appears in the maze. `RTF` (Real Time Factor) in the bottom right should be close to `1.00`.
 
-### Terminal 2: ROS-GZ Bridge
-Bridges the Lidar data from Gazebo to ROS 2.
-```bash
-source /opt/ros/jazzy/setup.bash
-ros2 run ros_gz_bridge parameter_bridge /scan@sensor_msgs/msg/LaserScan@gz.msgs.LaserScan
-```
-**Expected Output**: Log indicating `Creating GZ->ROS Bridge`.
+# Launch simulation and Nav2
+ros2 launch irobot_create_gz_bringup create3_navigation.launch.py
+Wait until you see "Nav2 is ready for use" or the Rviz window is fully loaded.
 
-### Terminal 3: Teleoperation (Optional)
-Allows you to drive the robot with the keyboard.
-```bash
-source /opt/ros/jazzy/setup.bash
-ros2 run teleop_twist_keyboard teleop_twist_keyboard
-```
-**Instructions**: Follow the on-screen keys (e.g., `i` to move forward, `j`/`l` to turn).
+Step 2: Send a Goal
+Open a second terminal to send a specific goal command.
 
-### Terminal 4: SLAM (Mapping)
-Starts the SLAM Toolbox to generate a map from the Lidar data covers the custom parameters for simulation latency.
-```bash
+Bash
+cd ~/create3_sim_ws
+source install/setup.bash
+
+# Send the robot to x=2.0, y=1.0
+python3 src/create3_sim/irobot_create_gz/irobot_create_gz_bringup/scripts/nav2_goal_sender.py --x 2.0 --y 1.0
+You can change the --x and --y arguments to any valid coordinate on the map.
+
+##Task 2: Autonomous Exploration
+Use this mode to let the robot autonomously map an unknown environment using frontier exploration (SLAM).
+
+Open a terminal and run the all-in-one launch file:
+
+Bash
+cd ~/create3_sim_ws
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
-ros2 launch irobot_create_gz_bringup create3_slam.launch.py
-```
-**Expected Output**: `[slam_toolbox]: Node using stack size...`. No errors about `unconfigured` state.
 
-### Terminal 5: Visualization (RViz)
-Visualizes the robot and the map.
-```bash
-source /opt/ros/jazzy/setup.bash
-ros2 run rviz2 rviz2
-```
+# Launch Autonomous Exploration (Sim + SLAM + Exploration Node)
+ros2 launch irobot_create_gz_bringup autonomous_exploration.launch.py
+The robot will detect unknown areas (frontiers) and automatically navigate to them to build a complete map of the environment.
 
-## RViz Configuration
+##Troubleshooting
+"Package not found": Make sure you ran colcon build and source install/setup.bash in the current terminal.
 
-1.  **Fixed Frame**: Set `Fixed Frame` (top left) to `map`.
-2.  **Add Map**:
-    -   Click **Add** (bottom left).
-    -   Select **By Topic**.
-    -   Find `/map` -> **Map**.
-    -   Click **OK**.
-    -   *(You should see the grey/white/black map grid appearing)*.
-3.  **Add Robot Model**:
-    -   Click **Add**.
-    -   Select **RobotModel**.
-4.  **Add LaserScan** (Optional):
-    -   Click **Add**.
-    -   Select **By Topic** -> `/scan` -> **LaserScan**.
+Robot not moving: Ensure the simulation isn't paused in Gazebo.
 
-## Saving the Map
-Once you have driven around and are happy with the map:
-```bash
-ros2 run nav2_map_server map_saver_cli -f my_maze_map
-```
-
-## Troubleshooting
--   **"No map received"**: Ensure Terminal 4 (SLAM) is running and Terminal 2 (Bridge) is running.
--   **Laggy Control**: Ensure `cmd_vel_timeout` is set to 5.0 (already configured in this repo).
+Navigation fails: Check if the goal coordinates (--x, --y) are inside a valid map area (not inside a wall).
