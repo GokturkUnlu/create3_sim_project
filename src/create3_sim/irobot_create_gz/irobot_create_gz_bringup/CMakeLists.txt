@@ -16,8 +16,15 @@ if(NOT ros_gz_interfaces_FOUND)
 endif()
 
 install(
-  DIRECTORY gui launch worlds config rviz
+  DIRECTORY gui launch worlds config rviz scripts
   DESTINATION share/${PROJECT_NAME}
+)
+
+install(
+  PROGRAMS
+    scripts/ld06_driver_node.py
+    scripts/adb_serial_forwarder.sh
+  DESTINATION lib/${PROJECT_NAME}
 )
 
 if(BUILD_TESTING)
